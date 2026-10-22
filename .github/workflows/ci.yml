@@ -1,0 +1,27 @@
+# Correctness only. Benchmarks never run here: shared CI machines are too noisy.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [gcc-asan, clang-asan]
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake --preset ${{ matrix.preset }} -DORDERBOOK_WERROR=ON
+      - run: cmake --build --preset ${{ matrix.preset }} -j
+      - run: ctest --preset ${{ matrix.preset }}
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake --preset clang-fuzz -DORDERBOOK_WERROR=ON
+      - run: cmake --build --preset clang-fuzz -j
+      - run: build/clang-fuzz/itch_fuzz -max_total_time=60

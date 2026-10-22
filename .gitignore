@@ -1,0 +1,7 @@
+build/
+/data/
+.cache/
+compile_commands.json
+crash-*
+leak-*
+timeout-*

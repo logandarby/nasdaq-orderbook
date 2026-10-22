@@ -1,0 +1,102 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
+    },
+    {
+      "name": "gcc",
+      "hidden": true,
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "g++" }
+    },
+    {
+      "name": "asan",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ORDERBOOK_SANITIZERS": "address,undefined",
+        "ORDERBOOK_BUILD_BENCH": "OFF"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "-march=native -g -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "clang-asan",
+      "displayName": "Clang, Debug, ASan + UBSan (daily work)",
+      "inherits": ["clang", "asan"]
+    },
+    {
+      "name": "gcc-asan",
+      "displayName": "GCC, Debug, ASan + UBSan",
+      "inherits": ["gcc", "asan"]
+    },
+    {
+      "name": "clang-tsan",
+      "displayName": "Clang, Debug, TSan (stage 4)",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ORDERBOOK_SANITIZERS": "thread",
+        "ORDERBOOK_BUILD_BENCH": "OFF"
+      }
+    },
+    {
+      "name": "clang-release",
+      "displayName": "Clang, Release, -march=native (benchmarks)",
+      "inherits": ["clang", "release"]
+    },
+    {
+      "name": "gcc-release",
+      "displayName": "GCC, Release, -march=native (benchmarks)",
+      "inherits": ["gcc", "release"]
+    },
+    {
+      "name": "clang-fuzz",
+      "displayName": "Clang, libFuzzer + ASan + UBSan",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ORDERBOOK_SANITIZERS": "address,undefined",
+        "ORDERBOOK_BUILD_FUZZ": "ON",
+        "ORDERBOOK_BUILD_TESTS": "OFF",
+        "ORDERBOOK_BUILD_BENCH": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "clang-asan", "configurePreset": "clang-asan" },
+    { "name": "gcc-asan", "configurePreset": "gcc-asan" },
+    { "name": "clang-tsan", "configurePreset": "clang-tsan" },
+    { "name": "clang-release", "configurePreset": "clang-release" },
+    { "name": "gcc-release", "configurePreset": "gcc-release" },
+    { "name": "clang-fuzz", "configurePreset": "clang-fuzz" }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": { "outputOnFailure": true }
+    },
+    { "name": "clang-asan", "inherits": "base", "configurePreset": "clang-asan" },
+    { "name": "gcc-asan", "inherits": "base", "configurePreset": "gcc-asan" },
+    { "name": "clang-tsan", "inherits": "base", "configurePreset": "clang-tsan" },
+    { "name": "clang-release", "inherits": "base", "configurePreset": "clang-release" },
+    { "name": "gcc-release", "inherits": "base", "configurePreset": "gcc-release" }
+  ]
+}
