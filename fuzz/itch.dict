@@ -1,0 +1,13 @@
+# libFuzzer dictionary for the ITCH parser: each book message's length prefix
+# followed by its type byte, plus the valid values of the enum fields.
+add_order="\x00\x24A"
+add_order_mpid="\x00\x28F"
+executed="\x00\x1fE"
+executed_with_price="\x00\x24C"
+cancel="\x00\x17X"
+delete="\x00\x13D"
+replace="\x00\x23U"
+buy="B"
+sell="S"
+printable_yes="Y"
+printable_no="N"

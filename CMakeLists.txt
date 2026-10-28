@@ -44,7 +44,7 @@ if(ORDERBOOK_BUILD_TESTS)
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
   FetchContent_MakeAvailable(googletest)
 
-  add_executable(unit_tests tests/smoke_test.cpp)
+  add_executable(unit_tests tests/smoke_test.cpp tests/itch_parser_test.cpp)
   target_link_libraries(unit_tests PRIVATE orderbook_core GTest::gtest_main)
   target_compile_definitions(unit_tests PRIVATE
     ORDERBOOK_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/data")
@@ -72,6 +72,8 @@ if(ORDERBOOK_BUILD_FUZZ)
   endif()
   add_executable(itch_fuzz fuzz/itch_fuzz.cpp)
   target_link_libraries(itch_fuzz PRIVATE orderbook_core)
+  # Keep EXPECT checks on although RelWithDebInfo defines NDEBUG.
+  target_compile_definitions(itch_fuzz PRIVATE ORDERBOOK_ENABLE_EXPECT=1)
   target_compile_options(itch_fuzz PRIVATE -fsanitize=fuzzer)
   target_link_options(itch_fuzz PRIVATE -fsanitize=fuzzer)
 endif()
