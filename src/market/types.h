@@ -5,19 +5,31 @@
 
 struct StockLocate {
   uint16_t value;
+  auto operator<=>(const StockLocate&) const noexcept = default;
 };
 static_assert(sizeof(StockLocate) == sizeof(std::uint16_t));
 static_assert(std::is_trivially_copyable_v<StockLocate>);
 
 struct Shares {
   uint32_t value;
+  auto operator<=>(const Shares&) const noexcept = default;
 };
 static_assert(sizeof(Shares) == sizeof(std::uint32_t));
 static_assert(std::is_trivially_copyable_v<Shares>);
 
 struct OrderRef {
   uint64_t value;
+  auto operator<=>(const OrderRef&) const noexcept = default;
 };
+
+template <>
+struct std::hash<OrderRef> {
+  std::size_t operator()(const OrderRef& id) const noexcept {
+    // delegate to underlying size_t
+    return std::hash<std::uint64_t>{}(id.value);
+  }
+};
+
 static_assert(sizeof(OrderRef) == sizeof(std::uint64_t));
 static_assert(std::is_trivially_copyable_v<OrderRef>);
 
@@ -50,7 +62,7 @@ class Price4 {
 
   constexpr std::uint32_t ticks() const { return ticks_; }
 
-  auto operator<=>(Price4 const&) const = default;
+  auto operator<=>(Price4 const&) const noexcept = default;
 
  private:
   std::uint32_t ticks_;
@@ -66,6 +78,12 @@ struct std::formatter<Price4> {
     return std::format_to(ctx.out(), "{}.{:04}", p.ticks() / 10000,
                           p.ticks() % 10000);
   }
+};
+
+struct PriceLevel {
+  Price4 price;
+  Shares shares;
+  bool operator==(const PriceLevel&) const noexcept = default;
 };
 
 #endif /* C3735BD1_6C82_4CAB_916F_F1DFBBE0DAF0 */

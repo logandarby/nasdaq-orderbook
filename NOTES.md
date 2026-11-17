@@ -91,12 +91,9 @@ Note: all of these work on the specific stock locate given
 - Assumes: order isn't already in the book, and shares > 0
 - Effect: creates a new entry in specified side, updating or creating a new price level with the amount of shares. Keeps track of orders' shares
 
-2. execute(order, locate, shares): From E
+2. execute(order, locate, shares): From E and C
 - Assumes order exists, 0 < shares <= remaining order shares
 - Effect: Updates the orders' price level to subtract the amount of shares on the order's side, deleting it if it reaches 0. Also subtracts shares from that specific order, deleting if it reaches 0 as well. 
-
-3. executeWithPrice(order, locate, shares, price): from C
-- Same as above
 
 4. cancel(order, locate, shares): from X
 - Assumes: the order exists, 0 < shares <= remaining order shares
@@ -112,11 +109,14 @@ Note: all of these work on the specific stock locate given
 
 Queries:
 
-7. best(side):
+7. best(locate, side):
   - for side == bid: returns highest price and its total quantity (or empty) 
   - for side == ask: returns lowest price and its total quantity (or empty)
+  - if a best price doesn't exist, returns nullopt
 
-8. quantityAt(side, price): returns the total shares at the price, on the specified side 
+8. quantityAt(locate, side, price): returns the total shares at the price, on the specified side 
+9. priceLevelCount(locate, side): returns the total number of price levels on a side
+10. contains(locate, order): returns true if the order exists in the locate
 
 
 ### Naive Implementation Baseline
