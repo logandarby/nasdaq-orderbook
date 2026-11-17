@@ -56,6 +56,85 @@ total                             268744780
 
 8251.4 MB in 3.920 s: 68.6 M msg/s, 2105 MB/s
 
+## 2026-11-16 Stage 2: Order book
+
+The goal of this stage is to get the order book working, and make it performant (low latency, tight latency distribution). In detail, here are the order of goals:
+- Make the naive, simple, and natural algorithm to serve as a baseline 
+- Write unit tests and confirm its behaviour is correct
+- Make sure it's correct under ASAN, UBSAN
+- Count anytimes a reference is missing.
+- Write tooling to report latency per operation, as well as percentiles (p50, p99, p99.9, max) all per message type.
+- Write baseline latency test (for example consuming messages with a nop). This is our latency floor, and tests timer overhead on the per-message latency
+- Once all this is in place, we can test different orderbook implementations on ITCH data. 
+
+### Order Book Spec 
+
+Below is the SPEC for the order book.
+
+Rough Implementation Spec:
+
+- Two ordered sequences
+  - Bids: Highest to lowest price
+  - Asks: Lowest to highest price
+- Price Level:
+  - Price
+  - Size: sum of all orders' size at this price level
+- Each order has an ID (uint64_t) which is unique through the trading day
+- We are assuming an aggregate book. 
+- There is an order book per stock. Each is indexed by the stock locate of the order. 
+
+Client API:
+
+Note: all of these work on the specific stock locate given
+
+1. add(order, locate, side, price, shares): From A and F
+- Assumes: order isn't already in the book, and shares > 0
+- Effect: creates a new entry in specified side, updating or creating a new price level with the amount of shares. Keeps track of orders' shares
+
+2. execute(order, locate, shares): From E
+- Assumes order exists, 0 < shares <= remaining order shares
+- Effect: Updates the orders' price level to subtract the amount of shares on the order's side, deleting it if it reaches 0. Also subtracts shares from that specific order, deleting if it reaches 0 as well. 
+
+3. executeWithPrice(order, locate, shares, price): from C
+- Same as above
+
+4. cancel(order, locate, shares): from X
+- Assumes: the order exists, 0 < shares <= remaining order shares
+- Effect: Same as above
+
+5. remove(order, locate): from D
+- Assumes: the order exists
+- Effect: order is removed from the order table, on the order's side, and all shares are subtracted from its corresponding price level. The price level is removed if it goes to 0. 
+
+6. replace(oldOrder, newOrder, locate, price, shares): from U
+- Assumes: oldOrder exists, newOrder doesn't, and 0 < shares
+- Effect: removes oldOrder from its side, then adds the newOrder with specified price and shares on the old order's side
+
+Queries:
+
+7. best(side):
+  - for side == bid: returns highest price and its total quantity (or empty) 
+  - for side == ask: returns lowest price and its total quantity (or empty)
+
+8. quantityAt(side, price): returns the total shares at the price, on the specified side 
+
+
+### Naive Implementation Baseline
+
+To effectively test the latency of different implementations, we need 2 controls: a latency ceiling (reference baseline), and a latency floor. For our reference baseline, we want to use a simple, natural, but relatively efficient version.
+
+For this, we will use:
+- Each stock maps to two std::map for both asks and bids, through indexing in an std::vector
+- The bids and asks are std::maps indexing prices to volume
+- std::unordered_map to map order IDs to side, price, and remaining shares
+
+### Done When
+
+- Naive order book is written with expects on preconditions, otherwise we ignore. It should be passing unit tests, ASAN and UBSAN and fuzzing with no exceptions.
+- Latency reference baseline is written for timer/parser overhead
+- We can view the per-operation latency histogram per message type, as well as percentiles (p50, p99, p99.9, max) without exceptions
+- This is all implemented in a way that supports easy addition of new order book implementations for benchmarking, and gathering percentile data
+
 <!-- One entry per experiment. Write the hypothesis and the prediction before running it.
 Wrong guesses stay in.
 

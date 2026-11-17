@@ -157,11 +157,11 @@ TEST(ItchMessage, SizesMatchSpec) {
 TEST(ItchMessage, AddOrderFields) {
   const auto m = std::get<message::AddOrder>(
       parse_one(add_order(0x0102030405060708, 'B', 2000, 1'605'800, 496)));
-  EXPECT_EQ(m.decode_order_reference_number(), 0x0102030405060708u);
+  EXPECT_EQ(m.decode_order_reference_number().value, 0x0102030405060708u);
   EXPECT_EQ(m.decode_side(), Side::Buy);
-  EXPECT_EQ(m.decode_shares(), 2000u);
+  EXPECT_EQ(m.decode_shares().value, 2000u);
   EXPECT_EQ(m.decode_price(), Price4{1'605'800});
-  EXPECT_EQ(m.decode_stock_locate(), 496u);
+  EXPECT_EQ(m.decode_stock_locate().value, 496u);
 }
 
 TEST(ItchMessage, AddOrderSellSide) {
@@ -173,9 +173,9 @@ TEST(ItchMessage, AddOrderSellSide) {
 TEST(ItchMessage, AddOrderWithMPIDFields) {
   const auto m = std::get<message::AddOrderWithMPID>(
       parse_one(add_order_mpid(42, "LEHM")));
-  EXPECT_EQ(m.decode_order_reference_number(), 42u);
+  EXPECT_EQ(m.decode_order_reference_number().value, 42u);
   EXPECT_EQ(m.decode_side(), Side::Sell);
-  EXPECT_EQ(m.decode_shares(), 300u);
+  EXPECT_EQ(m.decode_shares().value, 300u);
   EXPECT_EQ(m.decode_price(), Price4{1'605'800});
   EXPECT_EQ(m.decode_attribution(), "LEHM");
 }
@@ -183,42 +183,42 @@ TEST(ItchMessage, AddOrderWithMPIDFields) {
 TEST(ItchMessage, ExecuteOrderFields) {
   const auto m =
       std::get<message::ExecuteOrder>(parse_one(executed(8881, 600)));
-  EXPECT_EQ(m.decode_stock_locate(), 13u);
-  EXPECT_EQ(m.decode_order_reference_number(), 8881u);
-  EXPECT_EQ(m.decode_executed_shares(), 600u);
-  EXPECT_EQ(m.decode_match_number(), 555u);
+  EXPECT_EQ(m.decode_stock_locate().value, 13u);
+  EXPECT_EQ(m.decode_order_reference_number().value, 8881u);
+  EXPECT_EQ(m.decode_executed_shares().value, 600u);
+  EXPECT_EQ(m.decode_match_number().value, 555u);
 }
 
 TEST(ItchMessage, ExecuteOrderWithPriceFields) {
   const auto m = std::get<message::ExecuteOrderWithPrice>(
       parse_one(executed_with_price(8881, 100, 'N', 504'600)));
-  EXPECT_EQ(m.decode_order_reference_number(), 8881u);
-  EXPECT_EQ(m.decode_executed_shares(), 100u);
-  EXPECT_EQ(m.decode_match_number(), 556u);
+  EXPECT_EQ(m.decode_order_reference_number().value, 8881u);
+  EXPECT_EQ(m.decode_executed_shares().value, 100u);
+  EXPECT_EQ(m.decode_match_number().value, 556u);
   EXPECT_EQ(m.decode_printable(), Printable::No);
   EXPECT_EQ(m.decode_execution_price(), Price4{504'600});
 }
 
 TEST(ItchMessage, CancelOrderFields) {
   const auto m = std::get<message::CancelOrder>(parse_one(cancel(77, 25)));
-  EXPECT_EQ(m.decode_stock_locate(), 13u);
-  EXPECT_EQ(m.decode_order_reference_number(), 77u);
-  EXPECT_EQ(m.decode_cancelled_shares(), 25u);
+  EXPECT_EQ(m.decode_stock_locate().value, 13u);
+  EXPECT_EQ(m.decode_order_reference_number().value, 77u);
+  EXPECT_EQ(m.decode_cancelled_shares().value, 25u);
 }
 
 TEST(ItchMessage, DeleteOrderFields) {
   const auto m = std::get<message::DeleteOrder>(parse_one(delete_order(78)));
-  EXPECT_EQ(m.decode_stock_locate(), 13u);
-  EXPECT_EQ(m.decode_order_reference_number(), 78u);
+  EXPECT_EQ(m.decode_stock_locate().value, 13u);
+  EXPECT_EQ(m.decode_order_reference_number().value, 78u);
 }
 
 TEST(ItchMessage, ReplaceOrderFields) {
   const auto m = std::get<message::ReplaceOrder>(
       parse_one(replace(100, 200, 50, 1'000'000)));
-  EXPECT_EQ(m.decode_stock_locate(), 13u);
-  EXPECT_EQ(m.decode_original_order_reference_number(), 100u);
-  EXPECT_EQ(m.decode_new_order_reference_number(), 200u);
-  EXPECT_EQ(m.decode_shares(), 50u);
+  EXPECT_EQ(m.decode_stock_locate().value, 13u);
+  EXPECT_EQ(m.decode_original_order_reference_number().value, 100u);
+  EXPECT_EQ(m.decode_new_order_reference_number().value, 200u);
+  EXPECT_EQ(m.decode_shares().value, 50u);
   EXPECT_EQ(m.decode_price(), Price4{1'000'000});
 }
 
@@ -327,9 +327,10 @@ TEST(ItchParser, ContinuesAfterNotSupported) {
   ASSERT_TRUE(parser.next().has_value());
   const auto second = parser.next();
   ASSERT_TRUE(second.has_value());
-  EXPECT_EQ(
-      std::get<message::DeleteOrder>(*second).decode_order_reference_number(),
-      5u);
+  EXPECT_EQ(std::get<message::DeleteOrder>(*second)
+                .decode_order_reference_number()
+                .value,
+            5u);
   EXPECT_FALSE(parser.next().has_value());
 }
 
