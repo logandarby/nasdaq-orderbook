@@ -30,7 +30,7 @@ concept OrderBook = std::default_initializable<B> &&
                       {
                         cbook.best(locate, side)
                       } -> std::same_as<std::optional<PriceLevel>>;
-                      { cbook.contains(locate, order) } -> std::same_as<bool>;
+                      { cbook.contains(order) } -> std::same_as<bool>;
                     };
 
 #endif /* ABEB47EC_F472_4507_8C63_82B7ED294B49 */

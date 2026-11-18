@@ -2,7 +2,7 @@
 
 Rebuilds per-stock limit order books from a full trading day of Nasdaq TotalView-ITCH 5.0 data, then measures how different book layouts and inter-thread queues perform on that data.
 
-**Status:** This project is under construction! Scaffolding & parser only. Books and queues aren't written yet. Check out [NOTES.md](NOTES.md) for progress.
+**Status:** This project is under construction! Scaffolding, ITCH parser, and a naive order book (for latency reference for benchmarking) only. Optimized books and queues aren't written yet. Check out [NOTES.md](NOTES.md) for progress.
 
 ## How this repo was set up
 

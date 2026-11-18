@@ -116,7 +116,7 @@ Queries:
 
 8. quantityAt(locate, side, price): returns the total shares at the price, on the specified side 
 9. priceLevelCount(locate, side): returns the total number of price levels on a side
-10. contains(locate, order): returns true if the order exists in the locate
+10. contains(order): returns true if the order exists
 
 
 ### Naive Implementation Baseline

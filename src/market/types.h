@@ -10,12 +10,41 @@ struct StockLocate {
 static_assert(sizeof(StockLocate) == sizeof(std::uint16_t));
 static_assert(std::is_trivially_copyable_v<StockLocate>);
 
+template <>
+struct std::formatter<StockLocate> {
+  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+
+  auto format(const StockLocate& p, std::format_context& ctx) const {
+    return std::format_to(ctx.out(), "StockLocate({})", p.value);
+  }
+};
+
 struct Shares {
   uint32_t value;
   auto operator<=>(const Shares&) const noexcept = default;
+  Shares& operator+=(Shares rhs) {
+    EXPECT(value <= std::numeric_limits<decltype(value)>::max() - rhs.value,
+           "Overflow");
+    value += rhs.value;
+    return *this;
+  }
+  Shares& operator-=(Shares rhs) {
+    EXPECT(value >= rhs.value, "Underflow");
+    value -= rhs.value;
+    return *this;
+  }
 };
 static_assert(sizeof(Shares) == sizeof(std::uint32_t));
 static_assert(std::is_trivially_copyable_v<Shares>);
+
+template <>
+struct std::formatter<Shares> {
+  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+
+  auto format(const Shares& p, std::format_context& ctx) const {
+    return std::format_to(ctx.out(), "Shares({})", p.value);
+  }
+};
 
 struct OrderRef {
   uint64_t value;
@@ -30,6 +59,15 @@ struct std::hash<OrderRef> {
   }
 };
 
+template <>
+struct std::formatter<OrderRef> {
+  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+
+  auto format(const OrderRef& p, std::format_context& ctx) const {
+    return std::format_to(ctx.out(), "OrderRef({})", p.value);
+  }
+};
+
 static_assert(sizeof(OrderRef) == sizeof(std::uint64_t));
 static_assert(std::is_trivially_copyable_v<OrderRef>);
 
@@ -39,12 +77,21 @@ struct MatchNumber {
 static_assert(sizeof(MatchNumber) == sizeof(std::uint64_t));
 static_assert(std::is_trivially_copyable_v<MatchNumber>);
 
-enum class Printable {
+template <>
+struct std::formatter<MatchNumber> {
+  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+
+  auto format(const MatchNumber& p, std::format_context& ctx) const {
+    return std::format_to(ctx.out(), "OrderRef({})", p.value);
+  }
+};
+
+enum class Printable : std::uint8_t {
   Yes,
   No,
 };
 
-enum class Side {
+enum class Side : std::uint8_t {
   Buy,
   Sell,
 };
