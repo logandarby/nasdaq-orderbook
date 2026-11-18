@@ -30,10 +30,10 @@ namespace {
 template <class>
 struct ToGTestTypes;
 template <class... Books>
-struct ToGTestTypes<BookList<Books...>> {
+struct ToGTestTypes<book::BookList<Books...>> {
   using type = ::testing::Types<Books...>;
 };
-using BookTypes = ToGTestTypes<AllBooks>::type;
+using BookTypes = ToGTestTypes<book::AllBooks>::type;
 
 constexpr StockLocate kLoc{1};
 constexpr StockLocate kOtherLoc{2};

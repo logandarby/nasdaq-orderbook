@@ -45,7 +45,7 @@ if(ORDERBOOK_BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   add_executable(unit_tests tests/smoke_test.cpp tests/itch_parser_test.cpp
-    tests/order_book_test.cpp)
+    tests/order_book_test.cpp tests/apply_test.cpp)
   target_link_libraries(unit_tests PRIVATE orderbook_core GTest::gtest_main)
   target_compile_definitions(unit_tests PRIVATE
     ORDERBOOK_TEST_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/data")

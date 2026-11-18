@@ -41,7 +41,7 @@ Notes:
 
 ### 2026-10-28 Parser Finished
 
-The ITCH message types, read and decoding logic, and parser are done. They've been unit tested and fuzzed. The counts for the test day are below.
+The ITCH message types, read and decoding logic, and parser are done. They've been unit tested and fuzzed. The counts for the test day are below (file `data/12302019.NASDAQ_ITCH50`).
 
 message                               count
 A  AddOrder                       117145568
@@ -134,6 +134,27 @@ For this, we will use:
 - Latency reference baseline is written for timer/parser overhead
 - We can view the per-operation latency histogram per message type, as well as percentiles (p50, p99, p99.9, max) without exceptions
 - This is all implemented in a way that supports easy addition of new order book implementations for benchmarking, and gathering percentile data
+
+## 2026-11-17 Order Book Reference Impl Done
+
+The reference order book implementation is done, at `book/map_book.h`. It is meant as a latency baseline reference for the rest of implementations to compare against. As a precursory look, here are the numbers reported through the `replay.cpp` function, passing through the parser as well as the order book (file `data/12302019.NASDAQ_ITCH50`).
+
+message                               count
+A  AddOrder                       117145568
+F  AddOrderWithMPID                 1485888
+E  ExecuteOrder                     5722824
+C  ExecuteOrderWithPrice              99917
+X  CancelOrder                      2787676
+D  DeleteOrder                    114360997
+U  ReplaceOrder                    21639067
+   NotSupported                     5502843
+total                             268744780
+
+8251.4 MB in 199.890 s: 1.3 M msg/s, 41 MB/s
+
+As another quick reference I tried running the MapBook with a pool allocator (`std::pmr::unsynchronized_pool_resource`), and it didn't speed anything up significantly
+
+8251.4 MB in 196.049 s: 1.4 M msg/s, 42 MB/s
 
 <!-- One entry per experiment. Write the hypothesis and the prediction before running it.
 Wrong guesses stay in.

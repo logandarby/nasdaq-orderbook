@@ -12,15 +12,19 @@
 #include <exception>
 #include <variant>
 
+#include "book/map_book.h"
+#include "feed/apply.h"
 #include "itch/itch_parser.h"
 #include "util/mapped_file.h"
+#include "util/overloaded.h"
 
 namespace {
 
 // Indexed like itch::ITCHMessage's alternatives.
 constexpr std::array<const char*, 8> kind_names{
-    "A  AddOrder",     "F  AddOrderWithMPID", "E  ExecuteOrder",
-    "C  ExecuteOrderWithPrice", "X  CancelOrder", "D  DeleteOrder",
+    "A  AddOrder",     "F  AddOrderWithMPID",
+    "E  ExecuteOrder", "C  ExecuteOrderWithPrice",
+    "X  CancelOrder",  "D  DeleteOrder",
     "U  ReplaceOrder", "   NotSupported"};
 static_assert(kind_names.size() == std::variant_size_v<itch::ITCHMessage>);
 
@@ -41,9 +45,12 @@ int main(int argc, char** argv) {
     std::uint64_t total = 0;
     int status = 0;
 
+    book::MapBook book{};
+
     const auto start = std::chrono::steady_clock::now();
     try {
       while (const auto message = parser.next()) {
+        feed::applyMessageToBook(book, *message);
         ++counts[message->index()];
         ++total;
       }

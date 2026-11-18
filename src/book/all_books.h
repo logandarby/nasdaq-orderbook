@@ -8,11 +8,13 @@
 #include "book/map_book.h"
 #include "book/order_book.h"
 
+namespace book {
 // A compile-time list of book types. Each one must satisfy OrderBook, so a
 // variant that drifts from the interface fails here with a readable error.
 template <OrderBook... Books>
 struct BookList {};
 
 using AllBooks = BookList<MapBook>;
+}  // namespace book
 
 #endif /* B61D991F_E34C_47AE_BB59_D524C5A0CE7F */

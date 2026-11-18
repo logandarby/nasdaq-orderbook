@@ -4,6 +4,8 @@
 
 #include "itch/itch_parser.h"
 
+#include "itch_builders.h"
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -16,130 +18,7 @@
 namespace {
 
 using namespace itch;
-
-// Appends big-endian fields, the way ITCH puts them on the wire.
-class Bytes {
- public:
-  Bytes& u8(const std::uint8_t v) {
-    data.push_back(std::byte{v});
-    return *this;
-  }
-  Bytes& ch(const char c) { return u8(static_cast<std::uint8_t>(c)); }
-  Bytes& u16(const std::uint16_t v) { return be(v, 2); }
-  Bytes& u32(const std::uint32_t v) { return be(v, 4); }
-  Bytes& u48(const std::uint64_t v) { return be(v, 6); }
-  Bytes& u64(const std::uint64_t v) { return be(v, 8); }
-  // Alpha field: ASCII, left-justified, padded with spaces.
-  Bytes& alpha(const std::string_view s, const std::size_t width) {
-    for (std::size_t i = 0; i < width; ++i) ch(i < s.size() ? s[i] : ' ');
-    return *this;
-  }
-  Bytes& append(const std::vector<std::byte>& more) {
-    data.insert(data.end(), more.begin(), more.end());
-    return *this;
-  }
-
-  std::vector<std::byte> data;
-
- private:
-  Bytes& be(const std::uint64_t v, const int width) {
-    for (int i = width - 1; i >= 0; --i)
-      u8(static_cast<std::uint8_t>(v >> (8 * i)));
-    return *this;
-  }
-};
-
-// Header shared by every message: type, stock locate, tracking number,
-// timestamp.
-Bytes header(const char type, const std::uint16_t locate) {
-  Bytes b;
-  b.ch(type)
-      .u16(locate)
-      .u16(/*tracking*/ 7)
-      .u48(/*timestamp*/ 34'200'000'000'000);
-  return b;
-}
-
-std::vector<std::byte> add_order(const std::uint64_t ref, const char side,
-                                 const std::uint32_t shares,
-                                 const std::uint32_t price,
-                                 const std::uint16_t locate = 13) {
-  return header('A', locate)
-      .u64(ref)
-      .ch(side)
-      .u32(shares)
-      .alpha("AAPL", 8)
-      .u32(price)
-      .data;
-}
-
-std::vector<std::byte> add_order_mpid(const std::uint64_t ref,
-                                      const std::string_view mpid) {
-  return header('F', 13)
-      .u64(ref)
-      .ch('S')
-      .u32(300)
-      .alpha("AAPL", 8)
-      .u32(1'605'800)
-      .alpha(mpid, 4)
-      .data;
-}
-
-std::vector<std::byte> executed(const std::uint64_t ref,
-                                const std::uint32_t shares) {
-  return header('E', 13).u64(ref).u32(shares).u64(/*match*/ 555).data;
-}
-
-std::vector<std::byte> executed_with_price(const std::uint64_t ref,
-                                           const std::uint32_t shares,
-                                           const char printable,
-                                           const std::uint32_t price) {
-  return header('C', 13)
-      .u64(ref)
-      .u32(shares)
-      .u64(/*match*/ 556)
-      .ch(printable)
-      .u32(price)
-      .data;
-}
-
-std::vector<std::byte> cancel(const std::uint64_t ref,
-                              const std::uint32_t shares) {
-  return header('X', 13).u64(ref).u32(shares).data;
-}
-
-std::vector<std::byte> delete_order(const std::uint64_t ref) {
-  return header('D', 13).u64(ref).data;
-}
-
-std::vector<std::byte> replace(const std::uint64_t original,
-                               const std::uint64_t replacement,
-                               const std::uint32_t shares,
-                               const std::uint32_t price) {
-  return header('U', 13)
-      .u64(original)
-      .u64(replacement)
-      .u32(shares)
-      .u32(price)
-      .data;
-}
-
-// Puts the 2-byte length prefix in front of a message, as in the file.
-std::vector<std::byte> framed(const std::vector<std::byte>& message) {
-  Bytes b;
-  b.u16(static_cast<std::uint16_t>(message.size())).append(message);
-  return b.data;
-}
-
-// Parses exactly one framed message and checks that the input then ends.
-ITCHMessage parse_one(const std::vector<std::byte>& message) {
-  const auto input = framed(message);
-  ITCHParser parser{input};
-  auto first = parser.next();
-  EXPECT_TRUE(first.has_value());
-  EXPECT_FALSE(parser.next().has_value());
-  return first.value();
-}
+using namespace itch_test;
 
 // --- Message layouts -------------------------------------------------------
 

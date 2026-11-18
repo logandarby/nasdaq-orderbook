@@ -7,20 +7,21 @@
 
 #include "book/order_book.h"
 
-struct LocateOrderBook {
-  std::map<Price4, Shares, std::greater<Price4>> bids;
-  std::map<Price4, Shares> asks;
-};
-
-struct OrderInfo {
-  Side side;
-  Price4 price;
-  Shares remainingShares;
-};
+namespace book {
 
 class MapBook {
   static constexpr size_t stockLocateCount =
       std::numeric_limits<decltype(StockLocate::value)>::max() + 1;
+  struct LocateOrderBook {
+    std::map<Price4, Shares, std::greater<Price4>> bids;
+    std::map<Price4, Shares> asks;
+  };
+
+  struct OrderInfo {
+    Side side;
+    Price4 price;
+    Shares remainingShares;
+  };
 
  private:
   template <typename F>
@@ -147,5 +148,6 @@ class MapBook {
 };
 
 static_assert(OrderBook<MapBook>);
+}  // namespace book
 
 #endif /* F2DA3744_1EA4_42CB_9CB1_E09C18C49A24 */
